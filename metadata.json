@@ -1,0 +1,6 @@
+{
+  "name": "SuperLista",
+  "description": "Tu asistente de compras inteligente offline-first. Planifica listas de supermercado agrupadas por categorías, registra historiales de gastos, y administra plantillas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
