@@ -36,10 +36,16 @@ export default function ActiveList({
   onUpdateItemCategory,
 }: ActiveListProps) {
   const [newItemName, setNewItemName] = useState("");
+  const [newItemCategory, setNewItemCategory] = useState<string>("");
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [importText, setImportText] = useState("");
   const [showCategoryMenuId, setShowCategoryMenuId] = useState<string | null>(null);
   const [showAutocomplete, setShowAutocomplete] = useState(false);
+
+  // Inline quick-add state per category section
+  const [quickAddCategory, setQuickAddCategory] = useState<string | null>(null);
+  const [quickAddName, setQuickAddName] = useState("");
+  const quickAddInputRef = useRef<HTMLInputElement>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -77,8 +83,19 @@ export default function ActiveList({
     e.preventDefault();
     if (!newItemName.trim()) return;
 
-    onAddItem(newItemName.trim(), undefined);
+    onAddItem(newItemName.trim(), newItemCategory || undefined);
     setNewItemName("");
+    setNewItemCategory("");
+  };
+
+  const handleQuickAddSubmit = (e: React.FormEvent, categoryName: string) => {
+    e.preventDefault();
+    if (!quickAddName.trim()) return;
+
+    onAddItem(quickAddName.trim(), categoryName);
+    setQuickAddName("");
+    // Keep the quick-add box open so the user can add several items in a row
+    quickAddInputRef.current?.focus();
   };
 
   const handleChipClick = (suggestion: string) => {
@@ -173,6 +190,19 @@ export default function ActiveList({
           </div>
 
           <div className="flex gap-2 shrink-0">
+            <select
+              value={newItemCategory}
+              onChange={(e) => setNewItemCategory(e.target.value)}
+              className="h-14 px-3 bg-white border-2 border-outline-variant-app rounded-xl font-body-md text-on-surface-app focus:border-primary-app focus:ring-0 outline-none max-w-[140px] sm:max-w-[180px] cursor-pointer"
+              title="Elegir categoría (opcional, si no se elige se detecta automáticamente)"
+            >
+              <option value="">Auto 🪄</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.name}>
+                  {c.emoji} {c.name}
+                </option>
+              ))}
+            </select>
             <button
               type="submit"
               className="h-14 w-14 bg-primary-app hover:bg-primary-container-app text-on-primary-app rounded-xl flex items-center justify-center transition-all shadow-md active:scale-95 flex-shrink-0"
@@ -204,9 +234,46 @@ export default function ActiveList({
             const currentCatObj = categories.find((c) => c.name === catName) || { emoji: "🧺" };
             return (
               <div key={catName} className="space-y-3">
-                <h3 className="font-label-lg text-primary-app uppercase tracking-wider flex items-center gap-2 px-1">
-                  <span className="text-lg">{currentCatObj.emoji}</span> {catName}
-                </h3>
+                <div className="flex items-center justify-between px-1">
+                  <h3 className="font-label-lg text-primary-app uppercase tracking-wider flex items-center gap-2">
+                    <span className="text-lg">{currentCatObj.emoji}</span> {catName}
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setQuickAddCategory(quickAddCategory === catName ? null : catName);
+                      setQuickAddName("");
+                      setTimeout(() => quickAddInputRef.current?.focus(), 0);
+                    }}
+                    className="w-7 h-7 rounded-lg border-2 border-primary-app text-primary-app hover:bg-primary-app hover:text-on-primary-app flex items-center justify-center transition-all cursor-pointer active:scale-90 shrink-0"
+                    title={`Agregar producto a ${catName}`}
+                  >
+                    <Plus className="w-4 h-4 stroke-[3]" />
+                  </button>
+                </div>
+
+                {quickAddCategory === catName && (
+                  <form
+                    onSubmit={(e) => handleQuickAddSubmit(e, catName)}
+                    className="flex gap-2 px-1"
+                  >
+                    <input
+                      ref={quickAddInputRef}
+                      type="text"
+                      value={quickAddName}
+                      onChange={(e) => setQuickAddName(e.target.value)}
+                      placeholder={`Nuevo producto en ${catName}...`}
+                      className="flex-1 h-11 px-3 bg-white border-2 border-outline-variant-app rounded-xl font-body-md text-on-surface-app focus:border-primary-app focus:ring-0 outline-none"
+                    />
+                    <button
+                      type="submit"
+                      className="h-11 w-11 bg-primary-app hover:bg-primary-container-app text-on-primary-app rounded-xl flex items-center justify-center transition-all shadow-sm active:scale-95 shrink-0 cursor-pointer"
+                      title="Agregar"
+                    >
+                      <Plus className="w-5 h-5 stroke-[3]" />
+                    </button>
+                  </form>
+                )}
 
                 <div className="grid grid-cols-1 gap-3">
                   {activeItemsByCategory[catName].map((item) => (
