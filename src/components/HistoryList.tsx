@@ -6,6 +6,7 @@
 import React, { useState } from "react";
 import { HistoryEntry, ShoppingItem } from "../types";
 import { Search, RotateCcw, Eye, Trash2, Check, History, TrendingUp, BarChart2, DollarSign, X, ShoppingCart } from "lucide-react";
+import { formatCurrency, CurrencyCode } from "../utils/format";
 
 interface HistoryListProps {
   history: HistoryEntry[];
@@ -136,7 +137,7 @@ export default function HistoryList({
                         <p className="font-body-md text-on-surface-variant-app mt-2">
                           <span className="font-extrabold text-on-surface-app">{entry.items.length} productos</span>
                           <span className="mx-2 opacity-50">•</span>
-                          Total: <span className="font-extrabold text-primary-app">{currency}{entry.totalPrice.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                          Total: <span className="font-extrabold text-primary-app">{formatCurrency(entry.totalPrice, currency as CurrencyCode)}</span>
                         </p>
                       </div>
 
@@ -210,7 +211,7 @@ export default function HistoryList({
               Gasto acumulado (Historial)
             </p>
             <p className="text-3xl font-extrabold text-[#005db7] tracking-tight">
-              {currency}{totalSpentThisMonth.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {formatCurrency(totalSpentThisMonth, currency as CurrencyCode)}
             </p>
             <div className="pt-2 flex items-center gap-1 text-primary-app text-xs font-bold">
               <TrendingUp className="w-3.5 h-3.5 text-primary-app" />
@@ -317,7 +318,7 @@ export default function HistoryList({
                       </span>
                       {item.price && (
                         <span className="font-mono text-outline-app font-semibold text-xs text-right">
-                          {currency}{(item.price * item.quantity).toFixed(2)}
+                          {formatCurrency(item.price * item.quantity, currency as CurrencyCode)}
                         </span>
                       )}
                     </div>
@@ -328,7 +329,7 @@ export default function HistoryList({
               <div className="border-t border-outline-variant-app/60 pt-4 flex justify-between items-center bg-surface-container-low p-4 rounded-2xl select-none border">
                 <span className="font-bold text-on-surface-app text-sm">Gasto total liquidado:</span>
                 <span className="font-headline-md font-extrabold text-primary-app">
-                  {currency}{selectedEntry.totalPrice.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  {formatCurrency(selectedEntry.totalPrice, currency as CurrencyCode)}
                 </span>
               </div>
             </div>

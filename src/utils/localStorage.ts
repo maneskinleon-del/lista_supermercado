@@ -107,7 +107,7 @@ export function safeClearAll(): boolean {
 /**
  * Get storage usage info
  */
-export function getStorageInfo(): { used: number; available: number; percentage: number } | null {
+export async function getStorageInfo(): Promise<{ used: number; available: number; percentage: number } | null> {
   if (!navigator.storage?.estimate) {
     return null;
   }

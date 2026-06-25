@@ -37,6 +37,6 @@ export interface ShoppingTemplate {
 
 export interface AppConfig {
   monthlyBudget: number;
-  currency: string; // e.g. "$" or "€"
+  currency: string; // e.g. "CLP", "$", "€"
   userName: string;
 }

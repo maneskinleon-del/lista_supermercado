@@ -68,7 +68,7 @@ export default function ConfigScreen({
     onUpdateConfig({
       userName: userName.trim(),
       monthlyBudget: parseFloat(budget) || 0,
-      currency: currency.trim() || "$",
+      currency: currency.trim() || "CLP",
     });
 
     setShowSavedFeedback(true);
@@ -134,10 +134,12 @@ export default function ConfigScreen({
                   onChange={(e) => setCurrency(e.target.value)}
                   className="w-full h-[46px] mt-1 pr-6 text-sm px-3 border border-outline-variant-app bg-white rounded-xl focus:border-primary-app outline-none cursor-pointer font-extrabold"
                 >
+                  <option value="CLP">CLP $ (Peso Chileno)</option>
                   <option value="$">$ (Peso / Dólar)</option>
                   <option value="€">€ (Euro)</option>
                   <option value="S/">S/ (Sol Peruano)</option>
                   <option value="Mex$">Mex$ (Peso Mexicano)</option>
+                  <option value="R$">R$ (Real Brasileño)</option>
                   <option value="¢">¢ (Colón / Centavo)</option>
                 </select>
               </div>

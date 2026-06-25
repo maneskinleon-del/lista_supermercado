@@ -16,6 +16,7 @@ import HistoryList from "./components/HistoryList";
 import TemplatesList from "./components/TemplatesList";
 import ConfigScreen from "./components/ConfigScreen";
 import { ShoppingCart, History as HistoryIcon, Layers, Settings as SettingsIcon, Check, RefreshCw, Grid } from "lucide-react";
+import { formatCurrency, CurrencyCode } from "./utils/format";
 
 export default function App() {
   // Navigation active tab
@@ -51,7 +52,7 @@ export default function App() {
 
   const [config, setConfig] = useState<AppConfig>(() => {
     const saved = localStorage.getItem("superlista_config");
-    return saved ? JSON.parse(saved) : { monthlyBudget: 24500, currency: "$", userName: "Manuel" };
+    return saved ? JSON.parse(saved) : { monthlyBudget: 24500, currency: "CLP", userName: "Manuel" };
   });
 
   const [templates, setTemplates] = useState<ShoppingTemplate[]>(() => {
@@ -228,7 +229,7 @@ export default function App() {
       alert("Para finalizar, marca al menos un elemento que se encuentre ya en el carrito.");
       return;
     }
-    setNewHistoryTitle(`Compra del ${new Date().toLocaleDateString("es-ES", { day: 'numeric', month: 'long' })}`);
+    setNewHistoryTitle(`Compra del ${new Date().toLocaleDateString("es-CL", { day: 'numeric', month: 'long' })}`);
     setFinalizeModalOpen(true);
   };
 
@@ -244,7 +245,7 @@ export default function App() {
     const newHistoryEntry: HistoryEntry = {
       id: "SHOP-" + Math.floor(1000 + Math.random() * 9000) + "-" + Math.random().toString(36).substring(2, 4).toUpperCase(),
       title: newHistoryTitle.trim() || "Compra Semanal",
-      date: "Hoy, " + new Date().toLocaleDateString("es-ES", { day: 'numeric', month: 'long' }),
+      date: new Date().toLocaleDateString("es-CL", { day: 'numeric', month: 'long' }),
       timestamp: Date.now(),
       totalPrice: calculatedTotal,
       items: checkedItems.map((itm) => ({ ...itm, checked: true })), // force full bought checks
@@ -456,7 +457,7 @@ export default function App() {
           </div>
           <div className="truncate">
             <span className="font-extrabold text-[#181d17] block leading-tight">{config.userName}</span>
-            <span className="text-[10px] text-[#40493d]/80 leading-none">Presupuesto: {config.currency}{config.monthlyBudget}</span>
+            <span className="text-[10px] text-[#40493d]/80 leading-none">Presupuesto: {formatCurrency(config.monthlyBudget, config.currency as CurrencyCode)}</span>
           </div>
         </div>
       </aside>
@@ -597,11 +598,12 @@ export default function App() {
                 <div className="flex justify-between font-bold pt-1.5 border-t border-[#bfcaba]/40 text-sm">
                   <span>Gasto estimado:</span>
                   <span className="text-[#0d631b] font-extrabold">
-                    {config.currency}
-                    {items
-                      .filter((i) => i.checked)
-                      .reduce((acc, curr) => acc + (curr.price || 500) * curr.quantity, 0)
-                      .toLocaleString('es-ES', { minimumFractionDigits: 2 })}
+                    {formatCurrency(
+                      items
+                        .filter((i) => i.checked)
+                        .reduce((acc, curr) => acc + (curr.price || 500) * curr.quantity, 0),
+                      config.currency as CurrencyCode
+                    )}
                   </span>
                 </div>
               </div>
