@@ -26,9 +26,9 @@ export default function ConfigScreen({
   onUpdateCategory,
   onExportData,
 }: ConfigScreenProps) {
-  const [userName, setUserName] = useState(config.userName);
-  const [budget, setBudget] = useState(config.monthlyBudget.toString());
-  const [currency, setCurrency] = useState(config.currency);
+  const [userName, setUserName] = useState(config.userName || "");
+  const [budget, setBudget] = useState(String(config.monthlyBudget ?? 24500));
+  const [currency, setCurrency] = useState(config.currency || "CLP");
   const [catName, setCatName] = useState("");
   const [catEmoji, setCatEmoji] = useState("");
   const [showSavedFeedback, setShowSavedFeedback] = useState(false);
@@ -66,9 +66,9 @@ export default function ConfigScreen({
   const handleSaveConfig = (e: React.FormEvent) => {
     e.preventDefault();
     onUpdateConfig({
-      userName: userName.trim(),
+      userName: userName?.trim() || "",
       monthlyBudget: parseFloat(budget) || 0,
-      currency: currency.trim() || "CLP",
+      currency: currency?.trim() || "CLP",
     });
 
     setShowSavedFeedback(true);

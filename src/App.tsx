@@ -52,7 +52,17 @@ export default function App() {
 
   const [config, setConfig] = useState<AppConfig>(() => {
     const saved = localStorage.getItem("superlista_config");
-    return saved ? JSON.parse(saved) : { monthlyBudget: 24500, currency: "CLP", userName: "Manuel" };
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return {
+          monthlyBudget: parsed.monthlyBudget ?? 24500,
+          currency: parsed.currency ?? "CLP",
+          userName: parsed.userName ?? "",
+        };
+      } catch { /* ignore */ }
+    }
+    return { monthlyBudget: 24500, currency: "CLP", userName: "Manuel" };
   });
 
   const [templates, setTemplates] = useState<ShoppingTemplate[]>(() => {
