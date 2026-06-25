@@ -4,23 +4,22 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { ShoppingItem, Category, HistoryEntry, ShoppingTemplate, AppConfig } from "./types";
+import { ShoppingItem, Category, ShoppingTemplate, AppConfig } from "./types";
 import {
   DEFAULT_CATEGORIES,
   INITIAL_ITEMS,
-  INITIAL_HISTORY,
   categorizeItem,
 } from "./utils/categorizer";
 import ActiveList from "./components/ActiveList";
-import HistoryList from "./components/HistoryList";
+import PriceCatalog from "./components/PriceCatalog";
 import TemplatesList from "./components/TemplatesList";
 import ConfigScreen from "./components/ConfigScreen";
-import { ShoppingCart, History as HistoryIcon, Layers, Settings as SettingsIcon, Check, RefreshCw, Grid } from "lucide-react";
+import { ShoppingCart, DollarSign, Layers, Settings as SettingsIcon, Check, RefreshCw } from "lucide-react";
 import { formatCurrency, CurrencyCode } from "./utils/format";
 
 export default function App() {
   // Navigation active tab
-  const [activeTab, setActiveTab] = useState<"lista" | "historial" | "plantillas" | "config">("lista");
+  const [activeTab, setActiveTab] = useState<"lista" | "precios" | "plantillas" | "config">("lista");
 
   // App core states initialized from localStorage with robust fallbacks
   const [items, setItems] = useState<ShoppingItem[]>(() => {
@@ -45,9 +44,24 @@ export default function App() {
     return DEFAULT_CATEGORIES;
   });
 
-  const [history, setHistory] = useState<HistoryEntry[]>(() => {
-    const saved = localStorage.getItem("superlista_history");
-    return saved ? JSON.parse(saved) : INITIAL_HISTORY;
+  const [priceCatalog, setPriceCatalog] = useState<Record<string, number>>(() => {
+    const saved = localStorage.getItem("superlista_prices");
+    if (saved) {
+      try { return JSON.parse(saved); } catch { /* ignore */ }
+    }
+    // Precios iniciales ejemplo para CLP
+    return {
+      "Pan de molde": 1200,
+      "Leche": 850,
+      "Atún": 1100,
+      "Arroz": 950,
+      "Cloro": 1300,
+      "Huevos": 3500,
+      "Manzanas": 600,
+      "Café": 4500,
+      "Papel higiénico": 2500,
+      "Detergente de ropa": 3200,
+    };
   });
 
   const [config, setConfig] = useState<AppConfig>(() => {
@@ -112,8 +126,8 @@ export default function App() {
   }, [categories]);
 
   useEffect(() => {
-    localStorage.setItem("superlista_history", JSON.stringify(history));
-  }, [history]);
+    localStorage.setItem("superlista_prices", JSON.stringify(priceCatalog));
+  }, [priceCatalog]);
 
   useEffect(() => {
     localStorage.setItem("superlista_config", JSON.stringify(config));
@@ -129,19 +143,18 @@ export default function App() {
     const existing = items.find((i) => i.name.toLowerCase() === name.toLowerCase() && i.checked === false);
 
     if (existing) {
-      // Incremet quantity if already exists
       setItems(
         items.map((i) => (i.id === existing.id ? { ...i, quantity: i.quantity + quantity } : i))
       );
     } else {
-      // Add fresh product
+      const catalogPrice = priceCatalog[name] || priceCatalog[name.toLowerCase()] || 0;
       const newItem: ShoppingItem = {
         id: Math.random().toString(36).substring(2, 9),
         name,
         category: matchedCategory,
         quantity,
         checked: false,
-        price: Math.floor(Math.random() * 1200) + 150, // simulated price for rich history metrics
+        price: catalogPrice || Math.floor(Math.random() * 1200) + 150,
       };
       setItems([newItem, ...items]);
     }
@@ -173,6 +186,19 @@ export default function App() {
 
   const handleUpdateItemCategory = (id: string, category: string) => {
     setItems(items.map((i) => (i.id === id ? { ...i, category } : i)));
+  };
+
+  // Price catalog handlers
+  const handleSavePrice = (productName: string, price: number) => {
+    setPriceCatalog(prev => ({ ...prev, [productName]: price }));
+  };
+
+  const handleDeletePrice = (productName: string) => {
+    setPriceCatalog(prev => {
+      const next = { ...prev };
+      delete next[productName];
+      return next;
+    });
   };
 
   const handleClearList = () => {
@@ -246,58 +272,14 @@ export default function App() {
   const handleConfirmFinalize = () => {
     const checkedItems = items.filter((i) => i.checked);
     const activeItems = items.filter((i) => !i.checked);
-
-    const calculatedTotal = checkedItems.reduce((acc, curr) => {
-      const price = curr.price || 500;
-      return acc + price * curr.quantity;
-    }, 0);
-
-    const newHistoryEntry: HistoryEntry = {
-      id: "SHOP-" + Math.floor(1000 + Math.random() * 9000) + "-" + Math.random().toString(36).substring(2, 4).toUpperCase(),
-      title: newHistoryTitle.trim() || "Compra Semanal",
-      date: new Date().toLocaleDateString("es-CL", { day: 'numeric', month: 'long' }),
-      timestamp: Date.now(),
-      totalPrice: calculatedTotal,
-      items: checkedItems.map((itm) => ({ ...itm, checked: true })), // force full bought checks
-    };
-
-    setHistory([newHistoryEntry, ...history]);
-    
-    // Retain lingering unbought active list, clear checked elements
     setItems(activeItems);
     setFinalizeModalOpen(false);
-    setActiveTab("historial");
-  };
-
-  // Re-use past lists in dynamic shopping checklists
-  const handleReplayPastList = (id: string) => {
-    const entry = history.find((e) => e.id === id);
-    if (!entry) return;
-
-    const mergedItems = [...items];
-    entry.items.forEach((pastItem) => {
-      const existing = mergedItems.find((m) => m.name.toLowerCase() === pastItem.name.toLowerCase() && m.checked === false);
-      if (existing) {
-        existing.quantity += pastItem.quantity;
-      } else {
-        mergedItems.unshift({
-          id: Math.random().toString(36).substring(2, 9),
-          name: pastItem.name,
-          category: pastItem.category,
-          quantity: pastItem.quantity,
-          checked: false,
-          price: pastItem.price,
-        });
-      }
-    });
-
-    setItems(mergedItems);
     setActiveTab("lista");
   };
 
-  const handleDeleteHistoryEntry = (id: string) => {
-    setHistory(history.filter((h) => h.id !== id));
-  };
+  const handleDeleteHistoryEntry = (_id: string) => {};
+
+  const handleReplayPastList = (_id: string) => {};
 
   const handleUpdateConfig = (newConfig: Partial<AppConfig>) => {
     setConfig({ ...config, ...newConfig });
@@ -319,7 +301,7 @@ export default function App() {
   // Backup data triggered download
   const handleExportData = () => {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(
-      JSON.stringify({ config, items, history, templates, categories }, null, 2)
+      JSON.stringify({ config, items, priceCatalog, templates, categories }, null, 2)
     );
     const downloadAnchor = document.createElement("a");
     downloadAnchor.setAttribute("href", dataStr);
@@ -424,15 +406,15 @@ export default function App() {
           </button>
 
           <button
-            onClick={() => setActiveTab("historial")}
+            onClick={() => setActiveTab("precios")}
             className={`flex items-center gap-3 rounded-xl px-4 py-3 font-semibold transition-all cursor-pointer text-left ${
-              activeTab === "historial"
+              activeTab === "precios"
                 ? "bg-[#64a1ff] text-white shadow-sm"
                 : "text-[#40493d] hover:bg-[#ebefe5]"
             }`}
           >
-            <HistoryIcon className="w-5 h-5" />
-            <span>Historial</span>
+            <DollarSign className="w-5 h-5" />
+            <span>Precios</span>
           </button>
 
           <button
@@ -490,12 +472,13 @@ export default function App() {
           />
         )}
 
-        {activeTab === "historial" && (
-          <HistoryList
-            history={history}
+        {activeTab === "precios" && (
+          <PriceCatalog
+            prices={priceCatalog}
+            categories={categories}
             currency={config.currency}
-            onReplayList={handleReplayPastList}
-            onDeleteHistoryEntry={handleDeleteHistoryEntry}
+            onSavePrice={handleSavePrice}
+            onDeletePrice={handleDeletePrice}
           />
         )}
 
@@ -538,15 +521,15 @@ export default function App() {
         </button>
 
         <button
-          onClick={() => setActiveTab("historial")}
+          onClick={() => setActiveTab("precios")}
           className={`flex flex-col items-center justify-center p-1 cursor-pointer transition-all ${
-            activeTab === "historial"
+            activeTab === "precios"
               ? "text-[#0d631b] scale-105 font-bold"
               : "text-[#40493d] hover:text-[#0d631b]"
           }`}
         >
-          <HistoryIcon className="w-5.5 h-5.5 stroke-[2]" />
-          <span className="text-[10px] mt-1 font-semibold leading-none">Historial</span>
+          <DollarSign className="w-5.5 h-5.5 stroke-[2]" />
+          <span className="text-[10px] mt-1 font-semibold leading-none">Precios</span>
         </button>
 
         <button
