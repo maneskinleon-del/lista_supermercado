@@ -6,7 +6,7 @@
 import React, { useState, useRef } from "react";
 import { ShoppingItem, Category } from "../types";
 import { DEFAULT_SUGGESTIONS, categorizeItem } from "../utils/categorizer";
-import { Plus, Minus, Check, ShoppingCart, Trash2, FileText, CheckSquare, RefreshCw, Sparkles, FolderPlus, Edit, HelpCircle, ChevronDown } from "lucide-react";
+import { Plus, Minus, Check, ShoppingCart, Trash2, FileText, CheckSquare, RefreshCw, Sparkles, FolderPlus, HelpCircle, ChevronDown } from "lucide-react";
 
 interface ActiveListProps {
   items: ShoppingItem[];
@@ -39,7 +39,6 @@ export default function ActiveList({
   const [newItemCategory, setNewItemCategory] = useState<string>("");
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [importText, setImportText] = useState("");
-  const [showCategoryMenuId, setShowCategoryMenuId] = useState<string | null>(null);
   const [showAutocomplete, setShowAutocomplete] = useState(false);
 
   // Inline quick-add state per category section
@@ -294,34 +293,6 @@ export default function ActiveList({
                         <span className="text-base sm:text-lg font-bold leading-tight break-words">
                           {item.name}
                         </span>
-                        
-                        <div className="relative mt-0.5 max-w-full">
-                          <button
-                            onClick={() => setShowCategoryMenuId(showCategoryMenuId === item.id ? null : item.id)}
-                            className="text-[11px] font-semibold text-outline-app hover:text-primary-app flex items-start gap-1 cursor-pointer"
-                          >
-                            <span className="break-words text-left leading-tight mt-0.5">{catName}</span>
-                            <Edit className="w-2.5 h-2.5 shrink-0 mt-[1px]" />
-                          </button>
-
-                          {showCategoryMenuId === item.id && (
-                            <div className="absolute left-0 mt-1 bg-white border border-outline-variant-app rounded-xl shadow-lg z-30 p-1.5 w-48 max-h-56 overflow-y-auto grid grid-cols-1 gap-1">
-                              {categories.map((c) => (
-                                <button
-                                  key={c.id}
-                                  onClick={() => {
-                                    onUpdateItemCategory(item.id, c.name);
-                                    setShowCategoryMenuId(null);
-                                  }}
-                                  className="text-left w-full px-2 py-1.5 text-xs rounded-lg hover:bg-primary-container-app hover:text-on-primary-container-app font-bold transition-all flex items-center gap-1.5"
-                                >
-                                  <span className="shrink-0">{c.emoji}</span>
-                                  <span className="truncate">{c.name}</span>
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
                       </div>
 
                       {/* Quantity adjusting blocks */}
