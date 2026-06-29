@@ -4,14 +4,13 @@
  */
 
 import React, { useState, useRef } from "react";
-import { ShoppingItem, Category } from "../types";
-import { DEFAULT_SUGGESTIONS, categorizeItem } from "../utils/categorizer";
-import { Plus, Minus, Check, ShoppingCart, Trash2, FileText, CheckSquare, RefreshCw, Sparkles, FolderPlus, HelpCircle, ChevronDown } from "lucide-react";
+import type { ShoppingItem, Category } from "../types";
+import { Modal } from "./Modal";
+import { Plus, Minus, Check, ShoppingCart, Trash2, FileText, CheckSquare, Sparkles, FolderPlus } from "lucide-react";
 
 interface ActiveListProps {
   items: ShoppingItem[];
   categories: Category[];
-  currency: string;
   onAddItem: (name: string, categoryName?: string, quantity?: number) => void;
   onToggleItem: (id: string) => void;
   onUpdateQuantity: (id: string, amount: number) => void;
@@ -19,13 +18,11 @@ interface ActiveListProps {
   onClearList: () => void;
   onImportList: (text: string) => void;
   onRemoveItem: (id: string) => void;
-  onUpdateItemCategory: (id: string, category: string) => void;
 }
 
 export default function ActiveList({
   items,
   categories,
-  currency,
   onAddItem,
   onToggleItem,
   onUpdateQuantity,
@@ -33,7 +30,6 @@ export default function ActiveList({
   onClearList,
   onImportList,
   onRemoveItem,
-  onUpdateItemCategory,
 }: ActiveListProps) {
   const [newItemName, setNewItemName] = useState("");
   const [newItemCategory, setNewItemCategory] = useState<string>("");
@@ -95,12 +91,6 @@ export default function ActiveList({
     setQuickAddName("");
     // Keep the quick-add box open so the user can add several items in a row
     quickAddInputRef.current?.focus();
-  };
-
-  const handleChipClick = (suggestion: string) => {
-    // strip the emoji if any
-    const cleanName = suggestion.replace(/[\u{1F300}-\u{1F9FF}]/gu, "").trim();
-    onAddItem(cleanName);
   };
 
   const handleImportSubmit = () => {
@@ -299,17 +289,22 @@ export default function ActiveList({
                       <div className="flex items-center gap-2.5 bg-surface-container-low border border-outline-variant-app rounded-xl p-1 shrink-0 select-none mr-2">
                         <button
                           onClick={() => onUpdateQuantity(item.id, -1)}
-                          className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container-highest transition-colors text-primary-app cursor-pointer active:scale-90"
+                          className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container-highest transition-colors text-primary-app active:scale-90"
+                          aria-label={`Restar uno a ${item.name}`}
                           title="Faltan"
                         >
                           <Minus className="w-4 h-4 stroke-[3]" />
                         </button>
-                        <span className="w-6 text-center font-label-lg font-extrabold text-on-surface-app text-sm">
+                        <span
+                          className="w-6 text-center font-label-lg font-extrabold text-on-surface-app text-sm"
+                          aria-label={`Cantidad: ${item.quantity}`}
+                        >
                           {item.quantity}
                         </span>
                         <button
                           onClick={() => onUpdateQuantity(item.id, 1)}
-                          className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container-highest transition-colors text-primary-app cursor-pointer active:scale-90"
+                          className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container-highest transition-colors text-primary-app active:scale-90"
+                          aria-label={`Sumar uno a ${item.name}`}
                           title="Agregar"
                         >
                           <Plus className="w-4 h-4 stroke-[3]" />
@@ -398,7 +393,7 @@ export default function ActiveList({
             disabled={items.length === 0}
             className="flex-1 h-12 border-2 border-error-app text-error-app hover:bg-error-container-app disabled:opacity-50 font-bold rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95 select-none"
           >
-            <Trash2 className="w-4.5 h-4.5" />
+            <Trash2 className="w-4 h-4" aria-hidden="true" />
             Limpiar lista
           </button>
 
@@ -406,72 +401,71 @@ export default function ActiveList({
             onClick={() => setImportModalOpen(true)}
             className="flex-1 h-12 border-2 border-outline-app hover:bg-surface-container-high text-on-surface-variant-app font-bold rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95 select-none"
           >
-            <FileText className="w-4.5 h-4.5" />
+            <FileText className="w-4 h-4" aria-hidden="true" />
             Importar desde TXT
           </button>
         </div>
       </section>
 
       {/* Import Modal */}
-      {importModalOpen && (
-        <div className="fixed inset-0 z-55 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl p-6 max-w-lg w-full border border-outline-variant-app shadow-2xl relative space-y-4 animate-in fade-in zoom-in-95 duration-150">
-            <h3 className="font-headline-md font-bold text-primary-app flex items-center gap-2 border-b border-outline-variant-app pb-2">
-              <FileText className="w-5 h-5 text-primary-app" /> Importar desde archivos
-            </h3>
-
-            <div className="space-y-1 text-sm text-on-surface-variant-app leading-snug">
-              <p>Puedes importar tu lista de compras pegando texto o subiendo un archivo txt.</p>
-              <p className="font-bold text-xs text-outline-app">Usa un elemento por línea. Ejemplo:</p>
-              <pre className="p-2.5 bg-surface-container-low font-mono text-xs rounded-lg border border-outline-variant-app max-h-24 overflow-y-auto">
-                {"3 Leche\nPan de molde\nAtún x2\n2 Cloro"}
-              </pre>
-            </div>
-
-            <textarea
-              rows={4}
-              value={importText}
-              onChange={(e) => setImportText(e.target.value)}
-              placeholder="Pega tu lista aquí..."
-              className="w-full text-sm font-body-md p-3 border border-outline-variant-app rounded-xl bg-white focus:border-primary-app outline-none resize-none"
-            ></textarea>
-
-            <div className="flex flex-col gap-2">
-              <span className="text-xs font-semibold text-outline-app">O selecciona un archivo txt:</span>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileUpload}
-                accept=".txt"
-                className="hidden"
-              />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="py-2.5 px-4 bg-surface-container border border-outline-app text-sm hover:bg-surface-container-high rounded-xl font-bold text-on-surface-app flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-95"
-              >
-                <FolderPlus className="w-4 h-4 text-primary-app" />
-                Examinar archivo TXT
-              </button>
-            </div>
-
-            <div className="flex gap-2.5 pt-2 border-t border-outline-variant-app/50 justify-end">
-              <button
-                onClick={() => setImportModalOpen(false)}
-                className="px-4 py-2 bg-surface-container hover:bg-surface-container-high font-bold rounded-xl text-on-surface-variant-app cursor-pointer text-sm transition-all active:scale-95"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleImportSubmit}
-                className="px-4 py-2 bg-primary-app hover:bg-primary-container-app font-bold rounded-xl text-on-primary-app cursor-pointer text-sm transition-all active:scale-95"
-              >
-                Cargar Lista
-              </button>
-            </div>
-          </div>
+      <Modal
+        open={importModalOpen}
+        onClose={() => setImportModalOpen(false)}
+        title="Importar desde archivos"
+        titleClassName="text-primary-app"
+      >
+        <div className="space-y-1 text-sm text-on-surface-variant-app leading-snug">
+          <p>Puedes importar tu lista de compras pegando texto o subiendo un archivo txt.</p>
+          <p className="font-bold text-xs text-outline-app">Usa un elemento por línea. Ejemplo:</p>
+          <pre className="p-2.5 bg-surface-container-low font-mono text-xs rounded-lg border border-outline-variant-app max-h-24 overflow-y-auto">
+            {"3 Leche\nPan de molde\nAtún x2\n2 Cloro"}
+          </pre>
         </div>
-      )}
+
+        <textarea
+          rows={4}
+          value={importText}
+          onChange={(e) => setImportText(e.target.value)}
+          placeholder="Pega tu lista aquí..."
+          className="w-full text-sm font-body-md p-3 border border-outline-variant-app rounded-xl bg-white focus:border-primary-app outline-none resize-none"
+        ></textarea>
+
+        <div className="flex flex-col gap-2">
+          <span className="text-xs font-semibold text-outline-app">O selecciona un archivo txt:</span>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileUpload}
+            accept=".txt"
+            className="hidden"
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="py-2.5 px-4 bg-surface-container border border-outline-app text-sm hover:bg-surface-container-high rounded-xl font-bold text-on-surface-app flex items-center justify-center gap-2 transition-all active:scale-95"
+          >
+            <FolderPlus className="w-4 h-4 text-primary-app" />
+            Examinar archivo TXT
+          </button>
+        </div>
+
+        <div className="flex gap-2.5 pt-2 border-t border-outline-variant-app/50 justify-end">
+          <button
+            type="button"
+            onClick={() => setImportModalOpen(false)}
+            className="px-4 py-2 bg-surface-container hover:bg-surface-container-high font-bold rounded-xl text-on-surface-variant-app text-sm transition-all active:scale-95"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={handleImportSubmit}
+            className="px-4 py-2 bg-primary-app hover:bg-primary-container-app font-bold rounded-xl text-on-primary-app text-sm transition-all active:scale-95"
+          >
+            Cargar Lista
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 }

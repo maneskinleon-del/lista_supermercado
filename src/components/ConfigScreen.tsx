@@ -4,8 +4,9 @@
  */
 
 import React, { useState } from "react";
-import { AppConfig, Category } from "../types";
-import { Settings, Plus, Trash, HelpCircle, Save, CheckCircle, Database, FileCode, Landmark, Edit3, X } from "lucide-react";
+import type { AppConfig, Category } from "../types";
+import { Modal } from "./Modal";
+import { Plus, Trash, Save, CheckCircle, Database, FileCode, Landmark, Edit3 } from "lucide-react";
 
 interface ConfigScreenProps {
   config: AppConfig;
@@ -185,7 +186,7 @@ export default function ConfigScreen({
             onClick={onExportData}
             className="w-full h-12 mt-6 border-2 border-primary-app hover:bg-primary-container-app hover:text-on-primary-app hover:border-transparent text-primary-app font-bold rounded-xl flex items-center justify-center gap-2.5 transition-all cursor-pointer active:scale-95 text-sm"
           >
-            <FileCode className="w-4.5 h-4.5" />
+            <FileCode className="w-4 h-4" aria-hidden="true" />
             Descargar Copia de Seguridad JSON
           </button>
         </section>
@@ -254,19 +255,23 @@ export default function ConfigScreen({
                       {/* Edit Button */}
                       <div className="flex items-center shrink-0">
                         <button
+                          type="button"
                           onClick={() => openEditModal(cat)}
-                          className="p-1 rounded text-outline-app hover:text-primary-app hover:bg-primary-container-app transition-colors duration-150 cursor-pointer"
+                          className="p-1 rounded text-outline-app hover:text-primary-app hover:bg-primary-container-app transition-colors duration-150"
+                          aria-label={`Editar categoría ${cat.name}`}
                           title="Editar Categoría"
                         >
-                          <Edit3 className="w-3.5 h-3.5" />
+                          <Edit3 className="w-3.5 h-3.5" aria-hidden="true" />
                         </button>
 
                         <button
+                          type="button"
                           onClick={() => onDeleteCategory(cat.id)}
-                          className="p-1 rounded text-outline-app hover:text-error-app hover:bg-error-container-app transition-colors duration-150 cursor-pointer"
+                          className="p-1 rounded text-outline-app hover:text-error-app hover:bg-error-container-app transition-colors duration-150"
+                          aria-label={`Eliminar categoría ${cat.name}`}
                           title="Eliminar Categoría"
                         >
-                          <Trash className="w-3.5 h-3.5" />
+                          <Trash className="w-3.5 h-3.5" aria-hidden="true" />
                         </button>
                       </div>
                     </div>
@@ -279,77 +284,65 @@ export default function ConfigScreen({
       </div>
 
       {/* Edit Category Modal */}
-      {editingCatId && (
-        <div className="fixed inset-0 z-55 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl p-6 max-w-sm w-full border border-outline-variant-app shadow-2xl relative space-y-4 animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex justify-between items-start border-b border-outline-variant-app pb-3">
-              <h3 className="font-headline-md font-bold text-primary-app">
-                Editar Categoría
-              </h3>
-              <button
-                onClick={() => setEditingCatId(null)}
-                className="p-1 rounded-lg hover:bg-surface-container-low transition-colors text-outline-app cursor-pointer"
-                title="Cerrar modal"
-              >
-                <X className="w-5 h-5" />
-              </button>
+      <Modal
+        open={editingCatId !== null}
+        onClose={() => setEditingCatId(null)}
+        title="Editar Categoría"
+        titleClassName="text-primary-app"
+      >
+        <form onSubmit={handleEditCatSubmit} className="space-y-4">
+          <div className="grid grid-cols-4 gap-3">
+            <div className="col-span-1 space-y-1">
+              <label className="text-[11px] font-bold text-outline-app">Emoji</label>
+              <input
+                type="text"
+                maxLength={2}
+                value={editCatEmoji}
+                onChange={(e) => setEditCatEmoji(e.target.value)}
+                className="w-full text-sm p-3 border border-outline-variant-app bg-white rounded-xl focus:border-primary-app outline-none text-center font-bold"
+              />
             </div>
-
-            <form onSubmit={handleEditCatSubmit} className="space-y-4">
-              <div className="grid grid-cols-4 gap-3">
-                <div className="col-span-1 space-y-1">
-                  <label className="text-[11px] font-bold text-outline-app">Emoji</label>
-                  <input
-                    type="text"
-                    maxLength={2}
-                    value={editCatEmoji}
-                    onChange={(e) => setEditCatEmoji(e.target.value)}
-                    className="w-full text-sm p-3 border border-outline-variant-app bg-white rounded-xl focus:border-primary-app outline-none text-center font-bold"
-                  />
-                </div>
-                <div className="col-span-3 space-y-1">
-                  <label className="text-[11px] font-bold text-outline-app">Nombre</label>
-                  <input
-                    type="text"
-                    required
-                    value={editCatName}
-                    onChange={(e) => setEditCatName(e.target.value)}
-                    className="w-full text-sm p-3 border border-outline-variant-app bg-white rounded-xl focus:border-primary-app outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-outline-app">Opciones del Catálogo Rápido (Menú desplegable)</label>
-                <p className="text-[10px] text-on-surface-variant-app pb-1">Agrega una sugerencia por línea (ej: pan de molde, pan de completo):</p>
-                <textarea
-                  rows={4}
-                  value={editCatPresetsTxt}
-                  onChange={(e) => setEditCatPresetsTxt(e.target.value)}
-                  placeholder="Ej: pan lactal&#10;galletas&#10;medialunas"
-                  className="w-full text-sm p-3 border border-outline-variant-app bg-white rounded-xl focus:border-primary-app outline-none resize-none"
-                ></textarea>
-              </div>
-
-              <div className="flex gap-2 justify-end pt-2">
-                <button
-                  type="button"
-                  onClick={() => setEditingCatId(null)}
-                  className="px-4 py-2 bg-surface-container hover:bg-surface-container-high font-bold rounded-xl text-on-surface-variant-app cursor-pointer text-sm transition-all active:scale-95"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-primary-app hover:bg-primary-container-app font-bold rounded-xl text-on-primary-app cursor-pointer text-sm transition-all active:scale-95"
-                >
-                  Guardar Cambios
-                </button>
-              </div>
-            </form>
+            <div className="col-span-3 space-y-1">
+              <label className="text-[11px] font-bold text-outline-app">Nombre</label>
+              <input
+                type="text"
+                required
+                value={editCatName}
+                onChange={(e) => setEditCatName(e.target.value)}
+                className="w-full text-sm p-3 border border-outline-variant-app bg-white rounded-xl focus:border-primary-app outline-none"
+              />
+            </div>
           </div>
-        </div>
-      )}
+
+          <div className="space-y-1">
+            <label className="text-[11px] font-bold text-outline-app">Opciones del Catálogo Rápido (Menú desplegable)</label>
+            <p className="text-[10px] text-on-surface-variant-app pb-1">Agrega una sugerencia por línea (ej: pan de molde, pan de completo):</p>
+            <textarea
+              rows={4}
+              value={editCatPresetsTxt}
+              onChange={(e) => setEditCatPresetsTxt(e.target.value)}
+              placeholder="Ej: pan lactal&#10;galletas&#10;medialunas"
+              className="w-full text-sm p-3 border border-outline-variant-app bg-white rounded-xl focus:border-primary-app outline-none resize-none"
+            ></textarea>
+          </div>
+
+          <div className="flex gap-2 justify-end pt-2">
+            <button
+              type="button"
+              onClick={() => setEditingCatId(null)}
+              className="px-4 py-2 bg-surface-container hover:bg-surface-container-high font-bold rounded-xl text-on-surface-variant-app text-sm transition-all active:scale-95"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-primary-app hover:bg-primary-container-app font-bold rounded-xl text-on-primary-app text-sm transition-all active:scale-95"
+            >
+              Guardar Cambios
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

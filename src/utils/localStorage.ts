@@ -1,21 +1,12 @@
 // src/utils/localStorage.ts - Safe localStorage wrapper with error handling
 
-type StorageKey =
+export type StorageKey =
   | 'superlista_items'
   | 'superlista_categories'
   | 'superlista_history'
   | 'superlista_config'
-  | 'superlista_templates';
-
-interface StorageOperation<T> {
-  (): T;
-}
-
-interface AsyncStorageOperation<T> {
-  (): Promise<T>;
-}
-
-const STORAGE_PREFIX = 'superlista_';
+  | 'superlista_templates'
+  | 'superlista_prices';
 
 /**
  * Safe localStorage get with error handling
@@ -29,7 +20,6 @@ export function safeGet<T>(key: StorageKey, fallback: T): T {
     return JSON.parse(stored) as T;
   } catch (error) {
     console.warn(`[localStorage] Failed to read ${key}:`, error);
-    // Try to clear corrupted entry
     try {
       localStorage.removeItem(key);
     } catch (clearError) {
@@ -49,14 +39,12 @@ export function safeSet<T>(key: StorageKey, value: T): boolean {
   } catch (error) {
     if (error instanceof DOMException && error.name === 'QuotaExceededError') {
       console.error(`[localStorage] Quota exceeded for ${key}. Attempting cleanup...`);
-      // Attempt to clean old history entries
       try {
         const historyKey = 'superlista_history' as StorageKey;
-        const history = safeGet(historyKey, []);
+        const history = safeGet<unknown[]>(historyKey, []);
         if (Array.isArray(history) && history.length > 50) {
           const trimmed = history.slice(0, 50);
           safeSet(historyKey, trimmed);
-          // Retry
           localStorage.setItem(key, JSON.stringify(value));
           return true;
         }
@@ -88,15 +76,14 @@ export function safeRemove(key: StorageKey): boolean {
  */
 export function safeClearAll(): boolean {
   try {
-    const keys = [
+    const keys: StorageKey[] = [
       'superlista_items',
       'superlista_categories',
       'superlista_history',
       'superlista_config',
       'superlista_templates',
-    ] as StorageKey[];
-
-    keys.forEach(key => localStorage.removeItem(key));
+    ];
+    keys.forEach((key) => localStorage.removeItem(key));
     return true;
   } catch (error) {
     console.warn('[localStorage] Failed to clear all:', error);

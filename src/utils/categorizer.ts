@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { ShoppingItem, Category, HistoryEntry } from "../types";
+import type { ShoppingItem, Category } from "../types";
 
 export const DEFAULT_CATEGORIES: Category[] = [
   { id: "panaderia", name: "Panadería", emoji: "🥖", presets: ["Pan de molde", "Pan de completo", "Pan de hamburguesa", "Galletas"] },
@@ -58,45 +58,6 @@ export const INITIAL_ITEMS: ShoppingItem[] = [
   { id: "3", name: "Atún", category: "Abarrotes", quantity: 3, checked: false, price: 1100 },
   { id: "4", name: "Arroz", category: "Abarrotes", quantity: 2, checked: true, price: 950 },
   { id: "5", name: "Cloro", category: "Limpieza", quantity: 1, checked: true, price: 1300 },
-];
-
-export const INITIAL_HISTORY: HistoryEntry[] = [
-  {
-    id: "SHOP-9283-X1",
-    title: "Compra Semanal",
-    date: "5 de junio",
-    timestamp: Date.now(),
-    totalPrice: 8420,
-    items: [
-      { id: "h1-1", name: "Leche Entera", category: "Lácteos", quantity: 4, checked: true, price: 850 },
-      { id: "h1-2", name: "Pan de Molde", category: "Panadería", quantity: 2, checked: true, price: 1200 },
-      { id: "h1-3", name: "Manzanas Rojas", category: "Frutas y Verduras", quantity: 5, checked: true, price: 300 },
-      { id: "h1-4", name: "Detergente Líquido", category: "Limpieza", quantity: 1, checked: true, price: 1120 }
-    ]
-  },
-  {
-    id: "SHOP-8841-B2",
-    title: "Limpieza Mensual",
-    date: "28 de mayo",
-    timestamp: Date.now() - 9 * 24 * 60 * 60 * 1000,
-    totalPrice: 4150,
-    items: [
-      { id: "h2-1", name: "Cloro", category: "Limpieza", quantity: 3, checked: true, price: 1300 },
-      { id: "h2-2", name: "Papel Higiénico", category: "Limpieza", quantity: 1, checked: true, price: 250 }
-    ]
-  },
-  {
-    id: "SHOP-1203-A4",
-    title: "Asado del Domingo",
-    date: "28 de mayo",
-    timestamp: Date.now() - 9 * 24 * 60 * 60 * 1000 - 10000,
-    totalPrice: 12900,
-    items: [
-      { id: "h3-1", name: "Carne Vacuna", category: "Carnicería y Fiambrería", quantity: 2, checked: true, price: 4500 },
-      { id: "h3-2", name: "Carbón", category: "Otros", quantity: 1, checked: true, price: 1500 },
-      { id: "h3-3", name: "Refresco", category: "Bebidas", quantity: 3, checked: true, price: 800 }
-    ]
-  }
 ];
 
 export const DEFAULT_SUGGESTIONS = [

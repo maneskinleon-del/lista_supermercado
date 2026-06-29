@@ -4,12 +4,12 @@
  */
 
 import React, { useState } from "react";
-import { ShoppingTemplate } from "../types";
-import { Copy, Plus, PlusCircle, Trash, RefreshCw, Layers, CheckCircle } from "lucide-react";
+import type { ShoppingTemplate } from "../types";
+import { Modal } from "./Modal";
+import { Copy, PlusCircle, Trash, Layers, CheckCircle } from "lucide-react";
 
 interface TemplatesListProps {
   templates: ShoppingTemplate[];
-  currency: string;
   onApplyTemplate: (id: string) => void;
   onDeleteTemplate: (id: string) => void;
   onSaveTemplate: (title: string, description: string, items: { name: string; category: string; quantity: number }[]) => void;
@@ -18,7 +18,6 @@ interface TemplatesListProps {
 
 export default function TemplatesList({
   templates,
-  currency,
   onApplyTemplate,
   onDeleteTemplate,
   onSaveTemplate,
@@ -28,6 +27,7 @@ export default function TemplatesList({
   const [templateTitle, setTemplateTitle] = useState("");
   const [templateDesc, setTemplateDesc] = useState("");
   const [appliedTemplateId, setAppliedTemplateId] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; title: string } | null>(null);
 
   const handleSaveSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,15 +82,13 @@ export default function TemplatesList({
             >
               {/* Delete button option */}
               <button
-                onClick={() => {
-                  if (confirm(`¿Seguro que deseas eliminar la plantilla "${tpl.title}"?`)) {
-                    onDeleteTemplate(tpl.id);
-                  }
-                }}
-                className="absolute right-4 top-4 p-1 rounded-lg text-outline-app hover:text-error-app hover:bg-error-container-app transition-colors duration-150 cursor-pointer"
+                type="button"
+                onClick={() => setPendingDelete({ id: tpl.id, title: tpl.title })}
+                className="absolute right-4 top-4 p-1 rounded-lg text-outline-app hover:text-error-app hover:bg-error-container-app transition-colors duration-150"
+                aria-label={`Eliminar plantilla ${tpl.title}`}
                 title="Eliminar plantilla"
               >
-                <Trash className="w-4.5 h-4.5" />
+                <Trash className="w-4 h-4" aria-hidden="true" />
               </button>
 
               <div className="space-y-3 pb-4">
@@ -147,60 +145,94 @@ export default function TemplatesList({
       )}
 
       {/* Save Template Modal */}
-      {saveModalOpen && (
-        <div className="fixed inset-0 z-55 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl p-6 max-w-lg w-full border border-outline-variant-app shadow-2xl relative space-y-4 animate-in fade-in zoom-in-95 duration-150">
-            <h3 className="font-headline-md font-bold text-primary-app border-b border-outline-variant-app pb-2">
-              Crear Nueva Plantilla
-            </h3>
-
-            <div className="space-y-1.5 text-xs text-outline-app">
-              <p>Tu lista vigente contiene <span className="font-extrabold text-primary-app">{currentActiveItems.length} productos</span> y se guardará como la base para esta plantilla.</p>
-            </div>
-
-            <form onSubmit={handleSaveSubmit} className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-on-surface-app">Título de la plantilla *</label>
-                <input
-                  type="text"
-                  required
-                  value={templateTitle}
-                  onChange={(e) => setTemplateTitle(e.target.value)}
-                  placeholder="Ej: Compras del Fin de Semana, Limpieza Express..."
-                  className="w-full text-sm p-3 border border-outline-variant-app bg-white rounded-xl focus:border-primary-app outline-none"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-on-surface-app">Descripción (opcional)</label>
-                <textarea
-                  rows={2}
-                  value={templateDesc}
-                  onChange={(e) => setTemplateDesc(e.target.value)}
-                  placeholder="Ej: Contiene la carne para parrilla, carbón y refrescos esenciales de fin de semana..."
-                  className="w-full text-sm p-3 border border-outline-variant-app bg-white rounded-xl focus:border-primary-app outline-none resize-none"
-                ></textarea>
-              </div>
-
-              <div className="flex gap-2.5 pt-2 border-t border-outline-variant-app/50 justify-end">
-                <button
-                  type="button"
-                  onClick={() => setSaveModalOpen(false)}
-                  className="px-4 py-2 bg-surface-container hover:bg-surface-container-high font-bold rounded-xl text-on-surface-variant-app cursor-pointer text-sm transition-all active:scale-95"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-primary-app hover:bg-primary-container-app font-bold rounded-xl text-on-primary-app cursor-pointer text-sm transition-all active:scale-95"
-                >
-                  Guardar Plantilla
-                </button>
-              </div>
-            </form>
-          </div>
+      <Modal
+        open={saveModalOpen}
+        onClose={() => setSaveModalOpen(false)}
+        title="Crear Nueva Plantilla"
+        titleClassName="text-primary-app"
+      >
+        <div className="space-y-1.5 text-xs text-outline-app">
+          <p>Tu lista vigente contiene <span className="font-extrabold text-primary-app">{currentActiveItems.length} productos</span> y se guardará como la base para esta plantilla.</p>
         </div>
-      )}
+
+        <form
+          onSubmit={(e) => {
+            handleSaveSubmit(e);
+          }}
+          className="space-y-4"
+        >
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-on-surface-app">Título de la plantilla *</label>
+            <input
+              type="text"
+              required
+              value={templateTitle}
+              onChange={(e) => setTemplateTitle(e.target.value)}
+              placeholder="Ej: Compras del Fin de Semana, Limpieza Express..."
+              className="w-full text-sm p-3 border border-outline-variant-app bg-white rounded-xl focus:border-primary-app outline-none"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-on-surface-app">Descripción (opcional)</label>
+            <textarea
+              rows={2}
+              value={templateDesc}
+              onChange={(e) => setTemplateDesc(e.target.value)}
+              placeholder="Ej: Contiene la carne para parrilla, carbón y refrescos esenciales de fin de semana..."
+              className="w-full text-sm p-3 border border-outline-variant-app bg-white rounded-xl focus:border-primary-app outline-none resize-none"
+            ></textarea>
+          </div>
+
+          <div className="flex gap-2.5 pt-2 border-t border-outline-variant-app/50 justify-end">
+            <button
+              type="button"
+              onClick={() => setSaveModalOpen(false)}
+              className="px-4 py-2 bg-surface-container hover:bg-surface-container-high font-bold rounded-xl text-on-surface-variant-app text-sm transition-all active:scale-95"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-primary-app hover:bg-primary-container-app font-bold rounded-xl text-on-primary-app text-sm transition-all active:scale-95"
+            >
+              Guardar Plantilla
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Confirm Delete Modal */}
+      <Modal
+        open={pendingDelete !== null}
+        onClose={() => setPendingDelete(null)}
+        title="Eliminar plantilla"
+        titleClassName="text-[#ba1a1a]"
+      >
+        <p className="text-sm text-[#40493d] text-center leading-relaxed">
+          ¿Seguro que deseas eliminar la plantilla{" "}
+          <strong>"{pendingDelete?.title}"</strong>? Esta acción no se puede deshacer.
+        </p>
+        <div className="flex gap-2 justify-end pt-2">
+          <button
+            type="button"
+            onClick={() => setPendingDelete(null)}
+            className="px-4 py-2 bg-[#ebefe5] hover:bg-[#e5eadf] font-bold rounded-xl text-[#40493d] text-sm transition-all active:scale-95"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (pendingDelete) onDeleteTemplate(pendingDelete.id);
+              setPendingDelete(null);
+            }}
+            className="px-4 py-2 bg-[#ba1a1a] hover:bg-[#ffdad6] hover:text-[#ba1a1a] font-bold rounded-xl text-white text-sm transition-all active:scale-95 shadow-md"
+          >
+            Sí, eliminar
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 }

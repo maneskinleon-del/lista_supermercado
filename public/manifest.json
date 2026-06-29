@@ -1,7 +1,7 @@
 {
   "name": "SuperLista",
   "short_name": "SuperLista",
-  "description": "A powerful shopping list application with offline capability",
+  "description": "Tu asistente de compras inteligente offline-first. Planifica listas de supermercado agrupadas por categorías y controla tus gastos.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -9,70 +9,80 @@
   "theme_color": "#0d631b",
   "orientation": "portrait-primary",
   "prefer_related_applications": false,
+  "lang": "es-CL",
   "categories": ["shopping", "productivity", "utilities"],
-  "screenshot": [
-    {
-      "src": "/screenshots/screenshot-1.png",
-      "sizes": "1080x1920",
-      "type": "image/png",
-      "form_factor": "narrow"
-    },
-    {
-      "src": "/screenshots/screenshot-2.png",
-      "sizes": "1080x1920",
-      "type": "image/png",
-      "form_factor": "wide"
-    }
-  ],
   "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
+    },
     {
       "src": "/icons/icon-72x72.png",
       "type": "image/png",
       "sizes": "72x72",
-      "purpose": "maskable any",
-      "density": 1.0
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-96x96.png",
+      "type": "image/png",
+      "sizes": "96x96",
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-128x128.png",
       "type": "image/png",
       "sizes": "128x128",
-      "purpose": "maskable any",
-      "density": 1.0
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-144x144.png",
       "type": "image/png",
       "sizes": "144x144",
-      "purpose": "maskable any",
-      "density": 1.0
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-152x152.png",
       "type": "image/png",
       "sizes": "152x152",
-      "purpose": "maskable any",
-      "density": 1.0
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-192x192.png",
       "type": "image/png",
       "sizes": "192x192",
-      "purpose": "maskable any",
-      "density": 1.0
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-256x256.png",
+      "type": "image/png",
+      "sizes": "256x256",
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-384x384.png",
       "type": "image/png",
       "sizes": "384x384",
-      "purpose": "maskable any",
-      "density": 1.0
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-512x512.png",
       "type": "image/png",
       "sizes": "512x512",
-      "purpose": "maskable any",
-      "density": 1.0
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-maskable-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
     }
   ]
 }

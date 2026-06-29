@@ -3,9 +3,10 @@
  */
 
 import React, { useState } from "react";
-import { Category } from "../types";
-import { formatCurrency, CurrencyCode } from "../utils/format";
-import { DollarSign, Plus, Trash2, Search, Tag, Edit2, Check, X } from "lucide-react";
+import type { Category } from "../types";
+import type { CurrencyCode } from "../utils/format";
+import { formatCurrency } from "../utils/format";
+import { Plus, Trash2, Search, Tag, Edit2, Check, X } from "lucide-react";
 
 interface PriceCatalogProps {
   prices: Record<string, number>;
@@ -24,7 +25,6 @@ export default function PriceCatalog({
 }: PriceCatalogProps) {
   const [newProductName, setNewProductName] = useState("");
   const [newProductPrice, setNewProductPrice] = useState("");
-  const [newProductCategory, setNewProductCategory] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [editingName, setEditingName] = useState<string | null>(null);
   const [editPrice, setEditPrice] = useState("");
@@ -55,7 +55,6 @@ export default function PriceCatalog({
     onSavePrice(name, price);
     setNewProductName("");
     setNewProductPrice("");
-    setNewProductCategory("");
   };
 
   const handleEditSubmit = (originalName: string) => {
